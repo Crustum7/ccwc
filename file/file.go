@@ -1,6 +1,7 @@
 package file
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"os"
@@ -35,10 +36,15 @@ func Bytes(file *os.File) (int64, error) {
 	return stats.Size(), nil
 }
 
-func PrintFileStats(file *os.File) (string, error) {
-	stats, err := file.Stat()
-	if err != nil {
-		return "", fmt.Errorf(`could not load stats from file %v`, file.Name())
+func Lines(file *os.File) int64 {
+	lines := int64(0)
+
+	reader := bufio.NewReader(file)
+	scan := bufio.NewScanner(reader)
+	scan.Split(bufio.ScanLines)
+	for scan.Scan() {
+		lines++
 	}
-	return fmt.Sprintf(`File %v, is of size %v and was last modified at %v`, file.Name(), stats.Size(), stats.ModTime()), nil
+
+	return lines
 }

@@ -46,3 +46,16 @@ func TestBytes(t *testing.T) {
 		t.Fatalf(`Expected Bytes() to return %v bytes but returned %v bytes`, target, bytes)
 	}
 }
+
+func TestLines(t *testing.T) {
+	name := "../test.txt"
+	file, err := os.Open(name)
+	if err != nil {
+		t.Fatalf(`Incorrect test: file %v not found`, name)
+	}
+	lines := Lines(file)
+	target := int64(7145)
+	if lines != target {
+		t.Fatalf(`Expected Lines() to return %v lines but returned %v lines`, target, lines)
+	}
+}
