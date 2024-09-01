@@ -16,6 +16,7 @@ func main() {
 
 	bytesPtr := flag.Bool("c", false, "outputs number of bytes if chosen")
 	linesPtr := flag.Bool("l", false, "outputs number of lines if chosen")
+	wordsPtr := flag.Bool("w", false, "outputs number of white space seperated words if chosen")
 
 	flag.Parse()
 
@@ -25,30 +26,38 @@ func main() {
 		log.Fatal("No file provided")
 	}
 	fileName := rest[0]
-
-	if *bytesPtr {
-		log.Println("Bytes was chosen")
-		HandleBytes(fileName)
-	} else if *linesPtr {
-		log.Println("Lines was chosen")
-		HandleLines(fileName)
-	}
-}
-
-func HandleBytes(fileName string) {
 	f, err := file.OpenFile(fileName)
 	if err != nil {
 		log.Fatal("Could not find file")
 	}
-	bytes, _ := file.Bytes(f)
-	fmt.Printf("%7d %s\n", bytes, fileName)
+	info, err := file.FileParseInfo(f)
+	if err != nil {
+		log.Fatal("Could not get file info")
+	}
+
+	noFlags := !(*bytesPtr || *linesPtr || *wordsPtr)
+	var fields []int
+	if noFlags {
+		fields = []int{info.Lines(), info.Words(), info.Bytes()}
+	} else {
+		fields = make([]int, 0)
+		if *bytesPtr {
+			fields = append(fields, info.Bytes())
+		}
+		if *linesPtr {
+			fields = append(fields, info.Lines())
+		}
+		if *wordsPtr {
+			fields = append(fields, info.Words())
+		}
+	}
+
+	fmt.Println(FormatOutput(fileName, fields...))
 }
 
-func HandleLines(fileName string) {
-	f, err := file.OpenFile(fileName)
-	if err != nil {
-		log.Fatal("Could not find file")
+func FormatOutput(path string, args ...int) string {
+	if len(args) == 0 {
+		return path
 	}
-	lines := file.Lines(f)
-	fmt.Printf("%7d %s\n", lines, fileName)
+	return fmt.Sprintf("%6d ", args[0]) + FormatOutput(path, args[1:]...)
 }
