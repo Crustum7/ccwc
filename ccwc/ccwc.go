@@ -9,6 +9,13 @@ import (
 	"martinjonson.com/file"
 )
 
+type Flags struct {
+	bytes bool
+	lines bool
+	words bool
+	chars bool
+}
+
 func main() {
 	log.SetPrefix("ccwc: ")
 	log.SetFlags(0)
@@ -20,54 +27,91 @@ func main() {
 
 	flag.Parse()
 
-	fileName := ""
-	width := 6
-	var f *os.File
+	var flags Flags
+	flags.bytes = *bytesPtr
+	flags.lines = *linesPtr
+	flags.words = *wordsPtr
+	flags.chars = *charsPtr
 
 	rest := flag.Args()
 	if len(rest) < 1 {
-		f = os.Stdin
-		width = 7
-	} else {
-		fileName = rest[0]
-		var err error
-		f, err = os.Open(fileName)
-		if err != nil {
-			log.Fatalf("Could not find file with name %s", fileName)
+		fields := handleFile(os.Stdin, flags)
+		if len(fields) == 1 {
+			fmt.Println(fields[0])
+		} else {
+			fmt.Println(FormatOutput("", 7, fields...))
 		}
-		defer f.Close()
+	} else {
+		fileResults := make([][]int, 0)
+		result := make([]int, 0)
+		for _, fileName := range rest {
+			f, err := os.Open(fileName)
+			if err != nil {
+				log.Fatalf("Could not find file with name %s", fileName)
+			}
+			defer f.Close()
+			fields := handleFile(f, flags)
+			fileResults = append(fileResults, make([]int, 0))
+			fileResults[len(fileResults)-1] = fields
+			for i, field := range fields {
+				if i == len(result) {
+					result = append(result, 0)
+				}
+				result[i] += field
+			}
+		}
+		width := numberOfDigits(result[len(result)-1])
+		for i, file := range fileResults {
+			fmt.Println(FormatOutput(rest[i], width, file...))
+		}
+		fmt.Println(FormatOutput("total", width, result...))
 	}
+}
 
+func numberOfDigits(num int) int {
+	if num == 0 {
+		return 1
+	}
+	return numberOfDigitsHelper(num)
+}
+
+func numberOfDigitsHelper(num int) int {
+	if num == 0 {
+		return 0
+	}
+	return numberOfDigitsHelper(num/10) + 1
+}
+
+func handleFile(f *os.File, flags Flags) []int {
 	info, err := file.NewFileInfo(f)
 	if err != nil {
 		log.Fatal("Could not get file info")
 	}
 
-	noFlags := !(*bytesPtr || *linesPtr || *wordsPtr)
+	return Fields(info, flags)
+}
+
+func Fields(info *file.FileInfo, flags Flags) []int {
+	noFlags := !(flags.bytes || flags.lines || flags.words)
 	var fields []int
 	if noFlags {
 		fields = []int{info.Lines(), info.Words(), info.Bytes()}
 	} else {
 		fields = make([]int, 0)
-		if *bytesPtr {
+		if flags.bytes {
 			fields = append(fields, info.Bytes())
 		}
-		if *linesPtr {
+		if flags.lines {
 			fields = append(fields, info.Lines())
 		}
-		if *wordsPtr {
+		if flags.words {
 			fields = append(fields, info.Words())
 		}
-		if *charsPtr {
+		if flags.chars {
 			fields = append(fields, info.Chars())
 		}
 	}
-
-	if len(fields) == 1 {
-		fmt.Println(fields[0], fileName)
-	} else {
-		fmt.Println(FormatOutput(fileName, width, fields...))
-	}
+	return fields
 }
 
 func FormatOutput(path string, width int, args ...int) string {
