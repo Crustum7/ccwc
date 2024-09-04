@@ -30,7 +30,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Could not find file")
 	}
-	info, err := file.FileParseInfo(f)
+	info, err := file.NewFileInfo(f)
 	if err != nil {
 		log.Fatal("Could not get file info")
 	}

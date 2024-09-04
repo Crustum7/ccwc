@@ -53,7 +53,7 @@ func TestLines(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`Incorrect test: file %v not found`, name)
 	}
-	info, err := FileParseInfo(file)
+	info, err := NewFileInfo(file)
 	if err != nil {
 		t.Fatalf(`Incorrect test: file %v not found`, name)
 	}
@@ -78,12 +78,28 @@ func TestWords(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`Incorrect test: file %v not found`, name)
 	}
-	info, err := FileParseInfo(file)
+	info, err := NewFileInfo(file)
 	if err != nil {
 		t.Fatalf(`Incorrect test: file %v not found`, name)
 	}
 	target := 58164
 	if info.words != target {
 		t.Fatalf(`Expected FileParseInfo() to return %v words but returned %v words`, target, info.words)
+	}
+}
+
+func TestCharacters(t *testing.T) {
+	name := "../test.txt"
+	file, err := os.Open(name)
+	if err != nil {
+		t.Fatalf(`Incorrect test: file %v not found`, name)
+	}
+	info, err := NewFileInfo(file)
+	if err != nil {
+		t.Fatalf(`Incorrect test: file %v not found`, name)
+	}
+	target := 339292
+	if info.chars != target {
+		t.Fatalf(`Expected FileParseInfo() to return %v chars but returned %v chars`, target, info.chars)
 	}
 }

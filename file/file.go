@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode/utf8"
 )
 
 type FileInfo struct {
 	bytes int
 	lines int
 	words int
+	chars int
 }
 
 func Hello(name string) (string, error) {
@@ -47,10 +49,11 @@ func (info *FileInfo) Words() int {
 	return info.words
 }
 
-func FileParseInfo(file *os.File) (*FileInfo, error) {
+func NewFileInfo(file *os.File) (*FileInfo, error) {
 	var info FileInfo
 	info.lines = 0
 	info.words = 0
+	info.chars = 0
 	bytes, err := Bytes(file)
 	if err != nil {
 		return &info, fmt.Errorf("could not get file info from %s", file.Name())
@@ -65,6 +68,7 @@ func FileParseInfo(file *os.File) (*FileInfo, error) {
 		info.lines++
 		line := scan.Text()
 		info.words += WordsInLine(line)
+		info.chars += utf8.RuneCountInString(line) + 2 // Account for new lines
 	}
 
 	return &info, nil
