@@ -22,7 +22,7 @@ func main() {
 
 	bytesPtr := flag.Bool("c", false, "outputs number of bytes if chosen")
 	linesPtr := flag.Bool("l", false, "outputs number of lines if chosen")
-	wordsPtr := flag.Bool("w", false, "outputs number of white space seperated words if chosen")
+	wordsPtr := flag.Bool("w", false, "outputs number of white space separated words if chosen")
 	charsPtr := flag.Bool("m", false, "outputs number of characters if chosen")
 
 	flag.Parse()
