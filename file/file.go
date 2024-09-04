@@ -49,6 +49,10 @@ func (info *FileInfo) Words() int {
 	return info.words
 }
 
+func (info *FileInfo) Chars() int {
+	return info.chars
+}
+
 func NewFileInfo(file *os.File) (*FileInfo, error) {
 	var info FileInfo
 	info.lines = 0
