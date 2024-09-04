@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"martinjonson.com/file"
 )
@@ -19,16 +20,24 @@ func main() {
 
 	flag.Parse()
 
+	fileName := ""
+	width := 6
+	var f *os.File
+
 	rest := flag.Args()
 	if len(rest) < 1 {
-		log.Fatal("No file provided")
+		f = os.Stdin
+		width = 7
+	} else {
+		fileName = rest[0]
+		var err error
+		f, err = os.Open(fileName)
+		if err != nil {
+			log.Fatalf("Could not find file with name %s", fileName)
+		}
+		defer f.Close()
 	}
 
-	fileName := rest[0]
-	f, err := file.OpenFile(fileName)
-	if err != nil {
-		log.Fatalf("Could not find file with name %s", fileName)
-	}
 	info, err := file.NewFileInfo(f)
 	if err != nil {
 		log.Fatal("Could not get file info")
@@ -54,12 +63,16 @@ func main() {
 		}
 	}
 
-	fmt.Println(FormatOutput(fileName, fields...))
+	if len(fields) == 1 {
+		fmt.Println(fields[0], fileName)
+	} else {
+		fmt.Println(FormatOutput(fileName, width, fields...))
+	}
 }
 
-func FormatOutput(path string, args ...int) string {
+func FormatOutput(path string, width int, args ...int) string {
 	if len(args) == 0 {
 		return path
 	}
-	return fmt.Sprintf("%6d ", args[0]) + FormatOutput(path, args[1:]...)
+	return fmt.Sprintf("%*d ", width, args[0]) + FormatOutput(path, width, args[1:]...)
 }
